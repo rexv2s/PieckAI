@@ -49,3 +49,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+// Example helper to talk to x64dbg-mcp-server from your backend/swarm layer
+export async function queryDebugger(command: string, params: any) {
+  try {
+    const response = await fetch('http://localhost:8080/mcp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', method: command, params, id: 1 }),
+    });
+    return await response.json();
+  } catch (err) {
+    console.error('x64dbg-mcp-server offline or unreachable:', err);
+    return null;
+  }
+}
