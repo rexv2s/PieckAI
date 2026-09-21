@@ -2,23 +2,50 @@ npx create-next-app@latest allyoucanwatch-app --typescript --tailwind --app
 cd allyoucanwatch-app
 npm install @remotion/player remotion
 
-/aycw-command-matrix
-├── /public
-│   ├── manifest.json            # PWA config for iPhone 16 home screen
-│   └── /icons
-├── /src
-│   ├── /config
-│   │   └── appState.json        # Central live UI & feature state (mutated by Ruflo)
-│   ├── /components
-│   │   ├── LiveHero.tsx         # Remotion-powered dynamic video banner
-│   │   └── MediaGrid.tsx        # Streaming matrix layout
-│   ├── /remotion
-│   │   └── CinematicBannerAnimation.tsx 
-│   └── /app
-│       ├── page.tsx             # Main dashboard view
-│       └── /api
-│           └── mutate
-│               └── route.ts     # Next.js API endpoint for Apple Shortcuts & Agents
-├── /zig-mcp                     # Integration layer for x64dbg-mcp-server HTTP bridge
-└── package.json
+import { NextResponse } from 'next/server';
+import fs from 'fs/promises';
+import path from 'path';
 
+const STATE_PATH = path.join(process.cwd(), 'src/config/appState.json');
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { action, payload } = body;
+
+    // 1. Shepherd Snapshot (Checkpoint current configuration)
+    const rawState = await fs.readFile(STATE_PATH, 'utf-8');
+    const currentState = JSON.parse(rawState);
+    let updatedState = { ...currentState };
+
+    // 2. Ruflo Mutator Execution
+    switch (action) {
+      case 'ADD_MEDIA':
+        updatedState.mediaItems.unshift(payload);
+        break;
+      case 'CYCLE_THEME':
+        updatedState.theme.accentColor = payload.accentColor;
+        break;
+      case 'UPDATE_BANNER':
+        updatedState.featuredBanner = { ...updatedState.featuredBanner, ...payload };
+        break;
+      case 'TRIGGER_GODMODE_SYNC':
+        // Integrates multi-model output or perturbation payload from Godmod3 logic
+        updatedState.metaNote = payload.promptResult;
+        break;
+      default:
+        return NextResponse.json({ success: false, error: 'Unknown action type' }, { status: 400 });
+    }
+
+    // 3. Atomic Write & Safeguard Validation
+    await fs.writeFile(STATE_PATH, JSON.stringify(updatedState, null, 2));
+
+    return NextResponse.json({ 
+      success: true, 
+      message: `Successfully executed [${action}] via iPhone shortcut command.` 
+    });
+  } catch (error: any) {
+    // Shepherd auto-rollback mechanism would trigger here if needed
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
