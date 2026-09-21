@@ -1,3 +1,24 @@
 npx create-next-app@latest allyoucanwatch-app --typescript --tailwind --app
 cd allyoucanwatch-app
 npm install @remotion/player remotion
+
+/aycw-command-matrix
+├── /public
+│   ├── manifest.json            # PWA config for iPhone 16 home screen
+│   └── /icons
+├── /src
+│   ├── /config
+│   │   └── appState.json        # Central live UI & feature state (mutated by Ruflo)
+│   ├── /components
+│   │   ├── LiveHero.tsx         # Remotion-powered dynamic video banner
+│   │   └── MediaGrid.tsx        # Streaming matrix layout
+│   ├── /remotion
+│   │   └── CinematicBannerAnimation.tsx 
+│   └── /app
+│       ├── page.tsx             # Main dashboard view
+│       └── /api
+│           └── mutate
+│               └── route.ts     # Next.js API endpoint for Apple Shortcuts & Agents
+├── /zig-mcp                     # Integration layer for x64dbg-mcp-server HTTP bridge
+└── package.json
+
